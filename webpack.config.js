@@ -12,7 +12,18 @@ module.exports = {
     module: {
         rules: [
             { test: /\.(js)$/, use: 'babel-loader' },
-            { test: /\.css$/, use: [ 'style-loader', 'css-loader' ]}
+            { test: /\.css$/, use: [ 'style-loader', 'css-loader' ]},
+            {
+                test: /\.(png|jpg|gif)$/i,
+                use: [
+                    {
+                    loader: 'url-loader',
+                    options: {
+                        limit: 8192,
+                    },
+                    },
+                ],
+            },
         ]
     },
     mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
@@ -20,9 +31,9 @@ module.exports = {
         new HtmlWebpackPlugin({
             template: 'app/index.html'
         }),
-        new CopyPlugin([
-            { from: '_redirects'}
-        ])
+        // new CopyPlugin([
+        //     { from: '_redirects'}
+        // ])
     ],
     devServer: {
         historyApiFallback: true
