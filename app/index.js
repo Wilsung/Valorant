@@ -4,6 +4,7 @@ import './index.css'
 import Navigation from './components/Navigation'
 import 'tachyons'
 import Logo from './components/Logo/Logo'
+import ImageLinkForm from './components/ImageLinkForm'
 
 class App extends React.Component{
     render(){
@@ -11,7 +12,7 @@ class App extends React.Component{
             <div>
                 <Navigation />
                 <Logo />
-                {/* <ImageLinkForm /> */}
+                <ImageLinkForm />
                 {/* <FaceRecognition /> */}
             </div>
             
