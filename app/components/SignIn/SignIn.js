@@ -7,6 +7,7 @@ class SignIn extends React.Component {
         this.state = {
             signInEmail: '',
             signInPassword: '',
+            error: ''
         }
     }
 
@@ -27,13 +28,21 @@ class SignIn extends React.Component {
                 password: this.state.signInPassword,
             })
         })
-        .then(response => response.json())
+        .then(response => {
+            if(response.ok){
+                this.setState({error: ''})
+                return response.json()
+            }else{
+                this.setState({error: 'Username or password is incorrect.'})
+            }
+        })
         .then(user => {
             if (user.id){
                 this.props.loadUser(user);
                 this.props.onRouteChange('home');
             }
         })
+        .catch(error => console.log('Credentials invalid'))
     }
 
     render() {
@@ -45,13 +54,19 @@ class SignIn extends React.Component {
                     <div className="measure">
                         <fieldset id="sign_up" className="ba b--transparent ph0 mh0">
                         <legend className="f4 fw6 ph0 mh0">Sign In</legend>
+                        {this.state.error && <div className='mid-gray pt1 f6 i'>{this.state.error}</div>}
                         <div className="mt3">
                             <label className="db fw6 lh-copy f6" htmlFor="email-address">Email</label>
                             <input 
                                 onChange={this.onEmailChange}
                                 className="pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100" 
                                 type="email" name="email-address"  
-                                id="email-address" />
+                                id="email-address" 
+                                onKeyPress={event => {
+                                    if (event.key === 'Enter') {
+                                      this.onSubmitSignIn()
+                                    }
+                                }}/>
                         </div>
                         <div className="mv3">
                             <label className="db fw6 lh-copy f6" htmlFor="password">Password</label>
@@ -60,7 +75,12 @@ class SignIn extends React.Component {
                                 className="b pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100" 
                                 type="password" 
                                 name="password"  
-                                id="password" />
+                                id="password" 
+                                onKeyPress={event => {
+                                    if (event.key === 'Enter') {
+                                      this.onSubmitSignIn()
+                                    }
+                                }}/>
                         </div>
                         </fieldset>
                         <div className="">

@@ -7,7 +7,8 @@ class Register extends React.Component{
         this.state = {
             email: '',
             password: '',
-            name: ''
+            name: '',
+            error: ''
         }
     }
 
@@ -33,13 +34,21 @@ class Register extends React.Component{
                 name: this.state.name
             })
         })
-        .then(response => response.json())
+        .then(response => {
+            if(response.ok){
+                this.setState({error: ''})
+                return response.json()
+            }else{
+                this.setState({error: 'Complete the form to register'})
+            }
+        })
         .then(user => {
             if (user.id){
                 this.props.loadUser(user);
                 this.props.onRouteChange('home');
             }
         })
+        .catch(error => console.log('Register invalid'))
     }
 
     render(){
@@ -50,6 +59,7 @@ class Register extends React.Component{
                     <div className="measure">
                         <fieldset id="sign_up" className="ba b--transparent ph0 mh0">
                         <legend className="f4 fw6 ph0 mh0">Register</legend>
+                        {this.state.error && <div className='mid-gray pt1 f7 i'>{this.state.error}</div>}
                         <div className="mt3">
                             <label className="db fw6 lh-copy f6" htmlFor="name">Name</label>
                             <input 
@@ -75,7 +85,12 @@ class Register extends React.Component{
                                 type="password" 
                                 name="password"  
                                 id="password" 
-                                onChange={this.onPasswordChange}/>
+                                onChange={this.onPasswordChange}
+                                onKeyPress={event => {
+                                    if (event.key === 'Enter') {
+                                      this.onSubmitRegister()
+                                    }
+                                }}/>
                         </div>
                         </fieldset>
                         <div className="">
