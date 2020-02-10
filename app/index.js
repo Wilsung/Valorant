@@ -8,14 +8,9 @@ import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm'
 import Rank from './components/Rank/Rank'
 import FaceRecognition from './components/FaceRecognition/FaceRecognition'
 import Particles from 'react-particles-js';
-import Clarifai from 'clarifai'
 import SignIn from './components/SignIn/SignIn'
 import Register from './components/Register/Register'
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
-
-const app = new Clarifai.App({
-    apiKey: 'a53834df9d2f4a72b81facff2adf9870'
-})
 
 const particleOptions = {
     particles: {
@@ -29,16 +24,38 @@ const particleOptions = {
     }
 }
 
+const initialState = {
+    input: '',
+    imageUrl: '',
+    skip: 'false',
+    box: {},
+    route: 'signin',
+    isSignedIn: false,
+    user: {
+        id: '',
+        name: '',
+        email: '',
+        entries: 0,
+        joined: ''
+    }
+}
+
 class App extends React.Component{
     constructor(){
         super();
-        this.state = {
-            input: '',
-            imageUrl: '',
-            box: {},
-            route: 'signin',
-            isSignedIn: false
-        }
+        this.state = initialState;
+    }
+
+    loadUser = (data) => {
+        this.setState({
+            user: {
+                id: data.id,
+                name: data.name,
+                email: data.email,
+                entries: data.entries,
+                joined: data.joined
+            }
+        })
     }
 
     onInputChange = (event) => {
@@ -66,48 +83,81 @@ class App extends React.Component{
         this.setState({
             imageUrl: this.state.input
         })
-        app.models.predict(
-            Clarifai.FACE_DETECT_MODEL, 
-            this.state.input)
-            .then(response => this.displayFaceBox(this.calculateFaceLocation(response)))
+        fetch('https://immense-garden-32810.herokuapp.com/imageurl', {
+            method: 'put',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                input: this.state.input
+            })
+            })
+            .then(response => response.json())
+            .then(response => {
+                if (response) {
+                    fetch('https://immense-garden-32810.herokuapp.com/image', {
+                        method: 'put',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            id: this.state.user.id
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(count => {
+                        this.setState(Object.assign(this.state.user, {entries: count}))
+                    })
+                    .catch(err => console.log)
+                }
+                this.displayFaceBox(this.calculateFaceLocation(response))
+            })
+            
             .catch(err => console.log(err));
     }
 
     onRouteChange = (route) => {
         if (route === 'signout'){
-            this.setState({isSignedIn: false})   
+            this.setState(initialState)
         }else if (route === 'home'){
-            this.setState({isSignedIn: true})
+            this.setState({
+                isSignedIn: true,
+                skip: false,
+                imageUrl: ''
+            })
+        }else if (route === 'skip'){
+            this.setState({
+                skip: true,
+                imageUrl: ''
+            })
         }
         this.setState({route})
     }
 
     render(){
-        const { isSignedIn, imageUrl, box, route } = this.state;
+        const { isSignedIn, imageUrl, box, route, user, skip } = this.state;
         return(
             <div>
                 <Particles 
                     className='particles'
                     params={particleOptions} 
                 />
-                <Navigation onRouteChange={this.onRouteChange} isSignedIn={isSignedIn}/>
-                {route === 'home' ? 
+                <Navigation onRouteChange={this.onRouteChange} isSignedIn={isSignedIn} skip={skip}/>
+                {route === 'home' || route==='skip' ? 
                     <div>
                         <Logo />
-                        <Rank />
+                        {!skip ? 
+                            <Rank name={user.name} entries={user.entries} />
+                            : <div className="tc i">Create an account to save your Rank.</div>}
                         <ImageLinkForm 
                             onInputChange={this.onInputChange} 
                             onSubmit={this.onSubmit}
                         />
                     </div>
                     : (
-                        route === 'signin' ?
-                            <SignIn onRouteChange={this.onRouteChange}/> 
-                            : <Register onRouteChange={this.onRouteChange}/>   
+                        route === 'signin' || route === 'signout' ?
+                            <SignIn loadUser={this.loadUser} onRouteChange={this.onRouteChange}/> 
+                            : <Register loadUser={this.loadUser} onRouteChange={this.onRouteChange}/>   
                     )
                 }
                 
-                <FaceRecognition box={box} imageUrl={imageUrl}/>
+                {imageUrl && <FaceRecognition box={box} imageUrl={imageUrl}/>}
             </div>
         )
     }
