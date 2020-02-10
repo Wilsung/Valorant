@@ -2,11 +2,10 @@
   "name": "SmartBrain",
   "version": "1.0.0",
   "description": "",
-  "main": "app/index.js",
+  "main": "index.js",
   "scripts": {
-    "heroku-prebuild": "npm install --dev",
-    "build": "webpack",
-    "start": "webpack-dev-server"
+    "build": "set NODE_ENV=production&&webpack",
+    "start": "webpack-dev-server --open"
   },
   "babel": {
     "presets": [
@@ -47,9 +46,6 @@
     "react-particles-js": "^2.7.0",
     "react-router-dom": "^5.1.2",
     "react-tilt": "^0.1.4",
-    "tachyons": "^4.11.1",
-    "webpack": "^4.41.0",
-    "webpack-cli": "^3.3.9",
-    "webpack-dev-server": "^3.8.1"
+    "tachyons": "^4.11.1"
   }
 }
